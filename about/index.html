@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+	<title>About Texel</title>
+	<meta property="og:title" content="About Texel" />
+	<meta property="og:image" content="https://texel.pages.dev/logo256.png" />
+	<link rel="shortcut icon" href="../logo.png" />
+	<meta name="theme-color" content="#000" />
+	<style>
+		*{
+			box-sizing: border-box;
+			padding: 0; margin: 0;
+			touch-action: pan-x pan-y;
+			-webkit-tap-highlight-color: #0000;
+			/*user-select: none;
+			-webkit-user-select: none;*/
+			-webkit-touch-callout: none;
+			-webkit-user-drag: none;
+		}
+		html{
+			font-size: 16px;
+			background: #eee;
+			color: #333;
+			font-family: Ubuntu, Arial;
+			height: 100%;
+			line-height: 1.25;
+		}
+		@media (prefers-color-scheme: dark){ html{ background: #222; color: #ccc; } }
+		body{ padding: 3rem 1rem; max-width: 50rem; margin: auto; }
+		h1, h2, h3, h4, h5, h6{ border-bottom: .125rem #8888 solid; padding-bottom: .5rem; margin: 1em 0; }
+		a{ color: #27e; }
+		li{ display: block; margin: 0.5em; padding-left: 2em; }
+		li::before{ content: "\25CF"; position: relative; display: inline-block; width: 0; left: -2em; }
+		p, ul, ol{ margin-bottom: 1em; }
+		hr{ border: 0; margin: 0; height: 2em; }
+	</style>
+	<script>
+		document.ontouchend = e => e.preventDefault()
+		document.ondragstart = e => e.preventDefault()
+		function insertEncoded(n, s = document.currentScript.parentElement, v = ''){
+			while(n) v += String.fromCharCode(Number(n&255n)), n >>= 8n
+			s.href='mailto:'+v
+			s.textContent=v.split('').join('\u200b')
+		}
+	</script>
+	<title>Texel</title>
+</head>
+<body>
+	<h1>Texel</h1>
+	<p>Texel is a massive collaborative-multiplayer pixel canvas where users (players) use in-game currency to "buy" ownership of pixels, with a possibility to earn back more of said currency once another player re-buys the same pixel. The concept is loosely based on an unreleased Web3 game with the same idea.</p>
+	<p>In-game currency is not currently backed by real (Fiat) money. Read more in the FAQ and Risk Disclosure section.</p>
+	<ul>
+		<li><a href="#faq">Frequently asked questions</a></li>
+		<li><a href="#risk">Risk Disclosure</a></li>
+		<li><a href="#tos">License & Terms of service</a></li>
+		<li><a href="#privacy">Privacy Policy</a></li>
+		<li><a href="#contact">Contact us</a></li>
+	</ul>
+
+	<hr />
+	<h1 id="faq">Frequently asked questions</h1>
+
+	<h3 id="pixel-refunds">Can I refund or otherwise withdraw placed pixels?</h3>
+	<p>No. The amount you paid has likely already been deposited into another user's account. Unless by their consent or coordination, this amount will remain there until another user buys those same pixels.</p>
+
+	<h3 id="slippage">What is slippage?</h3>
+	<p>Slippage is the difference between the price estimate you are given when you decide to execute a transaction and the real price when the transaction actually occurs. Since transactions are generally fast, slippage is normally small (&lt; 1%), however, we also provide tools to limit the impact of slippage, such as automatically aborting the transaction if the price raises more than a specified margin.</p>
+
+	<hr>
+	<p>If you have any questions, please don't hesitate to ask us in the <a href="#contact">contact us</a> section.</p>
+
+	<hr />
+	<h1 id="risk">Risk Disclosure</h1>
+
+	<p>Transactions involving real money inherently carry risk, including but not limited to loss of funds, delays, errors, reversals, technical failures, or actions by third parties (such as payment processors, banks, or networks). While we take reasonable measures to maintain the security and reliability of the Service, we do not guarantee that the Service will be uninterrupted, error-free, or free from all risk.</p>
+	<p>You acknowledge that:</p>
+	<ul>
+		<li>Funds transmitted through the Service are irreversible once processed.</li>
+		<li>We do not provide financial, investment, legal, or tax advice.</li>
+		<li>You are solely responsible for determining whether the Service is suitable for your use case and financial circumstances.</li>
+	</ul>
+
+	<h3>No Custodial Guarantee</h3>
+	<p>We do not act as a bank, deposit-taking institution, or fiduciary. Funds held or processed via the Service are not insured or guaranteed by any government deposit protection scheme.</p>
+
+	<h3>Limitation of Responsibility</h3>
+	<p>To the maximum extent permitted by law, we are not responsible for losses arising from user error (e.g, "fat finger" error), unauthorized access resulting from your failure to secure your credentials, actions of third-party providers, or market, network, or system conditions beyond our reasonable control.</p>
+
+	<hr />
+	<h1 id="tos">License & Terms of service</h1>
+
+	<p><em>Last revision: 9th of January 2026</em></p>
+
+	<p><b>TL;DR, We aim to provide the service "as-is", that is, as the user, you bear the full legal and financial responsibility of your own actions, such as losses or fraud. We do not offer any service, permissions, or guarantees beyond what we are required by applicable law, or expressly stated in this Terms of service. This summary is not a substitute for the whole Terms of service, and we strongly recommend that you read it in its entirety before implicitly accepting it (by using our service).</b></p>
+
+	<h3 id="responsible-use">Responsible Use</h3>
+	<p>By using the Service, you acknowledge and agree that you are solely responsible for all actions taken through your account, including any financial decisions, transactions, or instructions you initiate. You must use the Service in a lawful, responsible, and prudent manner, and in accordance with these Terms and all applicable laws and regulations.</p>
+	<p>You agree not to use the Service in a way that is fraudulent, abusive, deceptive, or intended to exploit, manipulate, or circumvent the Service, its safeguards, or any third-party systems. We reserve the right to suspend or terminate access where we reasonably suspect misuse, fraud, or unlawful activity.</p>
+
+	<h3 id="responsible-disclosure">Responsible Disclosure</h3>
+	<p>We take the security of our systems and our users' funds seriously. We welcome good-faith security research and responsible disclosure of vulnerabilities. If you believe you have discovered a security vulnerability affecting our service, infrastructure, or users, please report it to us promptly using one of the channels stated in the <a href="#contact">contact us</a> section.</p>
+	<p>When reporting a vulnerability, we ask that you:</p>
+	<ul>
+		<li>Act in good faith and avoid privacy violations, data destruction, or service disruption.</li>
+		<li>Do not exploit the vulnerability beyond what is reasonably necessary to confirm its existence.</li>
+		<li>Do not access, modify, or transfer funds or financial instruments.</li>
+		<li>Do not access, download, or retain personal or confidential user data.</li>
+		<li>Do not publicly disclose the vulnerability until we have had a reasonable amount of time to investigate and fix the issue.</li>
+	</ul>
+	<p>Note that this policy does not authorize:</p>
+	<ul>
+		<li>Testing that results in service degradation, denial of service, or financial loss.</li>
+		<li>Social engineering, phishing, or physical attacks against our employees or users.</li>
+		<li>Automated scanning or testing that impacts system availability.</li>
+		<li>Any activity that violates applicable law or third-party rights.</li>
+	</ul>
+	<p>Compliance with this policy will generally safeguard you from legal action being taken against you.</p>
+
+	<h3 id="change-of-terms">Change of terms</h3>
+	<p>We may modify these Terms at any time to reflect changes to the Service, applicable laws, or our business practices. Updated Terms will be made available through the Service or by other reasonable means, and the “last updated” date will be revised accordingly. Unless otherwise required by law, changes become effective upon posting. Your continued access to or use of the Service after the effective date constitutes your acceptance of the updated Terms. If you do not agree to the changes, you must immediately stop using the Service before the changes take effect.</p>
+	<p>We may also modify any other aspect of our service, including, but not limited to, fees, usage limits or the interface used to access the Service. Such modifications may be made at any time and may apply immediately. We have no obligation to continue offering any particular feature, functionality, pricing, or service level, and we are not liable for any impact such changes may have on your use of the Service, your business, or your customers. Continued use of the Service following any modification constitutes acceptance of the modified Service.</p>
+
+
+	<hr />
+	<h1 id="privacy">Privacy Policy</h1>
+
+	<p>We currently collect no user data beyond what is necessary for basic site functionality. All the information that we have is exposed in a clear and comprehensive manner via our official client interface, to those who it is relevant. We currently do not sell or otherwise share any amount of data with any third partie(s), and do not plan to do so for the near future. Note that third parties may still choose to independently collect data that is public via our API, in accordance with our terms of service and API usage restrictions. If you believe someone is unfairly or unlawfully collecting data from Texel, public or not, do not hesitate to contact us using one of the channels stated in the <a href="#contact">contact us</a> section.</p>
+
+
+	<hr />
+	<h1 id="contact">Contact us</h1>
+
+	<p>If one of the following channels fails or you do not receive any response, please make sure to try other channels, even if it is designated for another topic</p>
+
+	<ul>
+		<li>Legal & technical: <a href="mailto:">(Please enable javascript)<script>insertEncoded(2360459011917839204351882985694572n)</script></a></li>
+		<li>General inquiries: <a href="mailto:">(Please enable javascript)<script>insertEncoded(140694320912232351562491245n)</script></a></li>
+	</ul>
+</body>
+</html>

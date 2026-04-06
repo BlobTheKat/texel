@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+	<link rel="shortcut icon" href="../logo.png" />
+	<title>Texel API documentation</title>
+	<meta property="og:title" content="Texel API documentation" />
+	<meta property="og:image" content="https://texel.pages.dev/logo256.png" />
+	<meta name="theme-color" content="#000" />
+	<style>
+		*{
+			box-sizing: border-box;
+			padding: 0; margin: 0;
+			touch-action: pan-x pan-y;
+			-webkit-tap-highlight-color: #0000;
+			/*user-select: none;
+			-webkit-user-select: none;*/
+			-webkit-touch-callout: none;
+			-webkit-user-drag: none;
+		}
+		html{
+			font-size: 16px;
+			background: #eee;
+			color: #333;
+			font-family: Ubuntu, Arial;
+			height: 100%;
+			line-height: 1.25;
+		}
+		@media (prefers-color-scheme: dark){ html{ background: #222; color: #ccc; } }
+		body{ padding: 3rem 1rem; max-width: 50rem; margin: auto; }
+		h1, h2, h3, h4, h5, h6{ border-bottom: .125rem #8888 solid; padding-bottom: .5rem; margin: 1em 0; }
+		a{ color: #27e; }
+		li{ display: block; margin: 0.5em; padding-left: 2em; }
+		li::before{ content: "\25CF"; position: relative; display: inline-block; width: 0; left: -2em; }
+		p, ul, ol{ margin-bottom: 1em; }
+		hr{ border: 0; margin: 0; height: 2em; }
+		code{
+			white-space: pre-wrap;
+			background: #8884;
+			padding: .5em;
+			border-radius: .5em;
+			display: block;
+			margin-block-end: 1em;
+			tab-size: 4;
+		}
+		.note{
+			border-left: var(--col) .25em solid;
+			padding: .5em 1em;
+			position: relative;
+		}
+		.note:before{
+			content: "";
+			position: absolute;
+			display: block;
+			background: var(--col);
+			inset: 0; opacity: 0.1;
+			width: 100%; height: 100%;
+			z-index: -1;
+		}
+		c{
+			font-family: monospace;
+			font-style: italic;
+			background: #8884;
+			padding: .1em;
+			border-radius: .2em;
+		}
+	</style>
+	<title>Texel API documentation</title>
+</head>
+<body>
+	<h1>Texel API documentation</h1>
+	<p>Within the restrictions set out by our <a href="/about#tos">License & Terms of service</a>, you may automate certain actions within our service. Where not explicitly clarified elsewhere, the presence of documentation for a specific feature or endpoint on this page implies permission to operate said feature in an automated manner, (such as via a custom program, periodically, or through a third party), anywhere in the world where it is permitted by law.</p>
+	<p>No guarantee is made on our part about the availability, uptime, or stability of any particular endpoint. The service as described herein is provided on a "best effort" basis. We are not responsible for any losses incurred by network issues, downtime, user error, protocol misuse, or otherwise.</p>
+	<ul>
+		<li><a href="#gateway">Gateway & Authentication</a></li>
+		<li><a href="#account">Account management</a></li>
+		<li><a href="#updates">Subscribing to updates</a></li>
+		<li><a href="#placing">Placing pixels</a></li>
+	</ul>
+
+	<hr />
+	<h1 id="gateway">Gateway & Authentication</h1>
+
+	<h3>Obtaining an API token</h3>
+	<p id="api-obtain-desc">You can obtain an API token in the &nbsp;<i style="opacity: 0.75; text-decoration: underline;">"Devices & API Tokens"</i>&nbsp; section of the account panel. The current limit is 8 API tokens. If you create a new one, the oldest one will be automatically deleted. Note that when a token is removed, all currently connected clients using that token are instantly disconnected with error code <c>3003</c></p>
+	<div class="note" style="--col: #ea2">While most APIs behave identically for API tokens and user tokens (ones obtained from <c>localStorage.texel_token</c>), it is strictly forbidden to use a user token in an automated manner for any endpoints that do not explicitly permit it. If we detect that you may be using a token type incorrectly, we will likely revoke the token immediately before issuing you a formal warning, or, in repeated cases, closing your account.</div>
+
+	<hr />
+	<h3>API Prefix</h3>
+	<p>The default prefix for all API endpoints is</p>
+	<code>https://blobk.at:9200/</code>
+	<p>This means websocket connections are made to <c>wss://blobk.at:9200/...</c></p>
+	<p>For 3rd-party servers, the API endpoint prefix within the official client can be changed via <c>localStorage.api_endpoint</c></p>
+	
+	<hr />
+	<h3>WebSocket Gateway</h3>
+	<code><t style="color:#e52">WEBSOCKET</t> /<t style="opacity:.5">&lt;token&gt;</t></code>
+	<p>Connects to the WebSocket gateway for all in-game actions, such as subscribing to areas or placing pixels</p>
+
+	<div class="note" style="--col: #ae2">
+		All WebSocket endpoints are performed in binary. It is recommended that you use the <b>nanobuf</b> library as that is how the server serializes and parses messages. If you wish to implement serialization from scratch, you can find more details, as well as reference implementations, from one of the github links listed below
+		<ul>
+			<li><a href="https://npmjs.com/package/nanobuf" target="_blank">Nanobuf on NPM</a></li>
+			<li><a href="https://github.com/BlobTheKat/nanobuf" target="_blank">Nanobuf (Javascript) on GitHub</a></li>
+			<li><a href="https://github.com/BlobTheKat/nanobuf-cpp" target="_blank">Nanobuf (C++) on GitHub</a></li>
+			<li><a href="https://github.com/Zekiah-A/libnanobuf" target="_blank">Unofficial C implementation on GitHub</a></li>
+		</ul>
+		UTF-8 messages from either the client or the server are non-normative (e.g debug or logging) and should generally be ignored (and not sent) in production.
+	</div>
+	<hr>
+	<p>When a connection is closed, all associated server resources are freed (You do not need to manually unsubscribe from chunks for example, and you are not recommended to)</p>
+
+	<hr />
+	<h3>Ratelimiting</h3>
+	<p>Ratelimiting is calculated over a 12 hour window and shared between all API endpoints. The ratelimit applied for invoking a given endpoint may be higher if the endpoint fails for a reason that could have easily been avoided (e.g malformed or repeated request).</p>
+	<p>The "Ratelimit cost" for each endpoint describes the time cost of calling the endpoint if it succeeds. For example, an endpoint with a Ratelimit cost of 30 seconds, if called every 30 seconds, will use up 100% of the sender's allocated ratelimit. In this example, if the endpoint fails due to ratelimiting, you should wait at least 30 seconds without making any other requests before trying again.</p>
+	<hr />
+	<h1 id="gateway">Account management</h1>
+
+	<code><t style="color:#e52">GET</t> /revoke/<t style="opacity:.5">&lt;token&gt;</t></code>
+	<p>Ratelimit cost: <b>15 seconds</b></p>
+	<p>Revokes <c>token</c>, which is also used for authenticating the request. This endpoint may be used on user tokens as well as API tokens. Returns <c>1</c> on success and <c>0</c> on failure</p>
+
+	<code><t style="color:#569cd6">const</t> <t style="color:#4fc1ff">TOKEN</t> = <t style="color:#ce9178">"dXNlckBleGFtcGxlLmNvbQ.FFjw3mC06aoCJtN4dN3dlwOFAKEToK3n"</t>;
+<t style="color:#dcdcaa">fetch</t>(<t style="color:#4fc1ff">ENDPOINT</t> + <t style="color:#ce9178">"/revoke/"</t> + <t style="color:#4fc1ff">TOKEN</t>)
+	.<t style="color:#dcdcaa">then</t>(<t style="color:#9cdcfe">res</t> => <t style="color:#9cdcfe">res</t>.<t style="color:#dcdcaa">text</t>()).<t style="color:#dcdcaa">then</t>(<t style="color:#9cdcfe">result</t> => {
+		<t style="color:#c586c0">if</t>(<t style="color:#9cdcfe">result</t> == <t style="color:#ce9178">"1"</t>){
+			<t style="color:#9cdcfe">console</t>.<t style="color:#dcdcaa">log</t>(<t style="color:#ce9178">"Token deleted"</t>)
+		}
+	})</code>
+
+	<hr />
+	<h1 id="updates">Subscribing to updates</h1>
+
+	<h3>Subscribe to chunk(s)</h3>
+	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">8</t>) [ <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) ]*</code>
+	<p>Subscribe to one or more chunk(s) specified by the array of chunk positions <c>(cx, cy)</c>. Chunk positions and pixel coordinates are related via shift-by-8 operations (i.e chunk position for <c>(x,y)</c> is <c>(x &gt;&gt; 8 & 0xff, y &gt;&gt; 8 & 0xff)</c>). If this connection is already subscribed to one of the chunks provided, nothing happens for that chunk (i.e it is not resent).</p>
+	<p>Ratelimit cost: 1 second per 200 chunks</p>
+
+	<code>C: <t style="color:#28e">08</t>  <t style="opacity:.5">00 00</t>  <t style="opacity:.5">01 00</t>  <t style="opacity:.5">00 FF</t></code>
+	<p>For example, this message subscribes to three chunks: <c>(0, 0)</c>, <c>(1, 0)</c> and <c>(0, -1)</c></p>
+
+	<hr />
+	<h3>Unsubscribe from chunk(s)</h3>
+	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">9</t>) [ <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) ]*</code>
+	<p>Unsubscribe from one or more chunk(s) specified by the array of chunk positions <c>(cx, cy)</c>. See above for more details. If this connection was not subscribed to one of the chunks provided, nothing happens for that chunk.</p>
+
+	<hr />
+	<h3>Metadata packet</h3>
+	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">1</t>) [ <t style="color:#5e2">v32</t>(<t style="opacity:.5">tag</t>) <t style="opacity:.5">data...</t> ]* <t style="color:#5e2">v32</t>(<t style="color:#28e">0</t>)</code>
+	<p>This packet is sent immediately after a connection is opened and includes some basic information, as listed below.</p>
+	<p>Tag = <c>1</c>. Account balance in units of $0.0001. If this tag is not present, assume the balance to be 0.</p>
+	<code><t style="color:#5e2">u64</t>(<t style="opacity:.5">account_balance</t>)</code>
+	<p>Tag = <c>0</c>. This is used to signify the end of the tag-value section and the end of the packet.</p>
+
+	<hr />
+	<h3>Incoming chunk data</h3>
+	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">16</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) <t style="color:#5e2">v32</t>(<t style="opacity:.5">appended</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">color_data</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">price_data</t>)</code>
+	<p>Incoming data for the chunk at <c>(cx, cy)</c>. This packet is usually in response to a "Subscribe to chunk(s)" packet. Note that one request to subscribe to many chunks will be responded with many individual chunk data packets.</p>
+	<p><c>color_data</c> is the concatenation of a zlib raw compressed chunk data and <c>appended</c> 32-bit integers (big endian). Uncompressed, the chunk data is 131072 bytes, i.e, 256*256 16-bit integers, corresponding to the color data for this chunk. The order is left-to-right, bottom-to-top. Each 32-bit integer from the <i>append</i> section changes one pixel in the uncompressed chunk data. The high 16 bits correspond to the index and the low 16 bits to the new value.</p>
+	<p><c>price_data</c> is the concatenation of a zlib raw compressed chunk and <c>appended</c> 32-bit integers (big endian). Uncompressed, the chunk data is 262144 bytes, i.e, 256*256 32-bit integers, corresponding to price for each pixel in units of $0.0001. Each 32-bit integer from the <i>append</i> section changes one pixel in the uncompressed chunk data. The index is borrowed from the equivalent 32-bit integer in the <c>color_data</c>'s append section, and the value to be replaced is the whole 32-bit integer from this append section.</p>
+	<code>
+       append = n -------------------|--------------------------|
+                                     v                          v
+            [[ zlib color data ... ] [ append section: 4n bytes ]]
+[[       zlib price data ...       ] [ append section: 4n bytes ]]
+
+</code>
+
+	<hr />
+	<h3>Incoming pixel data</h3>
+	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">24</t> | <t style="color:#28e">25</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) [ <t style="color:#5e2">u32</t>(<t style="opacity:.5">lx_ly_color</t>) <t style="color:#5e2">u32</t>(<t style="opacity:.5">price</t>) ]*</code>
+	<p><c>lx_ly_color</c> is formed as <c>lx | ly&lt;&lt;8 | col&lt;&lt;16</c>. <c>lx</c> and <c>ly</c> correspond to local positions within the chunk that this packet is for (<c>(cx, cy)</c>). <c>price</c> is in units of $0.0001, much like chunk data.</p>
+	<p>For pixels that you now own, code <c>25</c> is used, otherwise, code <c>24</c> is used.</p>
+
+	<h1 id="placing">Placing pixels</h1>
+
+	<h3>Submitting a transaction</h3>
+	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">10</t>) <t style="color:#5e2">u16</t>(<t style="opacity:.5">min_x</t>) <t style="color:#5e2">u16</t>(<t style="opacity:.5">min_y</t>) <t style="color:#5e2">u64</t>(<t style="opacity:.5">max_price</t>) [ <t style="color:#5e2">u32</t>(<t style="opacity:.5">x_y_off_col</t>) ]*</code>
+	<p>Submits a transaction of pixels defined by <c>(min_x + x_off, min_y + y_off)</c> and color <c>col</c> packed into <c>x_y_off_col = x_off | y_off&lt;&lt;8 | col&lt;&lt;16</c>. The pixels must be supplied in ascending position order (i.e sorted by the <c>x_off | y_off&lt;&lt;8</c> value)</p>
+	<p>If the price for obtaining ownership of all of these pixels is greater than <c>max_price</c>, the transaction is aborted. A transaction is considered atomic, this means that it either succeeds or fails in its entirety, it is not possible for only some pixels to have been placed and others been rejected.</p>
+	<p>Note that transactions are bound by the following limits</p>
+	<ul>
+		<li>Max transaction dimensions: <c>256 x 256</c> (bound by encoding)</li>
+		<li>Max transaction size: <c>4096</c> pixels</li>
+		<li>Ratelimit cost: <b>1 second per 50,000 pixels</b></li>
+		<li>All chunks that a transaction modified must be subscribed to. At the current moment, they do not have to be subscribed by the same websocket that executes the transaction, however, that may change in the future.</li>
+	</ul>
+	
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!-- Texel Oauth2 interstitial -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+*{
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: none;
+}
+#msg{
+	font-family: Arial;
+	font-size: 2em;
+	font-weight: bold;
+}
+@keyframes loading{ 0%{ background-position-x: 0; } 100%{ background-position-x: 400px; } }
+#bar{
+	width: 200px;
+	height: 8px;
+	transform: skewX(-45deg);
+	animation: loading 3s linear infinite;
+	background-image: linear-gradient(90deg, #d4275d 50%, #88d427 50%);
+	background-size: 200%;
+}
+body{
+	background: #eee;
+	color: #222;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-flow: column;
+	gap: .5em;
+	font-size: 16px;
+	height: 100%;
+}
+@media (prefers-color-scheme: dark) { body{ background: #222; color: #ccc; } }
+</style>
+<div id="msg">Loading...</div><div id="bar"></div>
+<script>const p=new URLSearchParams(location.search)
+const code = p.get('code'), fail = e => { msg.textContent = e; msg.style.color = '#e22'; bar.remove() }
+if(!code) fail(p.get('error') ?? 'Unknown error')
+else fetch(localStorage.api_endpoint+'/get_token?code=' + encodeURIComponent(p.get('code')) + '&redirect_uri=' + encodeURIComponent(location.origin+location.pathname))
+	.then(a => a.text()).then(tok => {
+		if(!tok) return fail('Login rejected')
+		localStorage.texel_token = tok
+		window.close()
+		msg.textContent = 'You may now close this window'
+		bar.remove()
+		location.href = ''
+	}, fail)
+</script>
