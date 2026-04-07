@@ -62,6 +62,13 @@ captureClick(connectingOverlay, () => {
 })
 refreshConnection()
 
+if(Date.now() < +localStorage.welcomeDismissed) $('#welcome-panel').remove()
+else captureClick($('#welcome-button'), () => {
+	Sound.play(note, 4)
+	$('#welcome-panel').remove()
+	localStorage.welcomeDismissed = Date.now() + 86400e3
+})
+
 const eyeDropper = window.EyeDropper ? new EyeDropper() : null
 if(!eyeDropper) $('#eyedropper').classList.add('disabled')
 else captureClick($('#eyedropper'), e => void eyeDropper.open().then(result => {
@@ -270,6 +277,7 @@ captureClick(place, e => {
 		else clickX = camX, clickY = camY, clickAnim = -1
 		return
 	}
+	localStorage.welcomeDismissed = 'Infinity'
 	if(!transactionSize()) return void Sound.play(buzz), toast('Click on the canvas to place pixels', '#e92')
 	if(!token) return void Sound.play(buzz), openAccountPanel()
 	if(dismissPlacePanel.checked || e.target.closest('#place-options')){

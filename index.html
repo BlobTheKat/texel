@@ -10,7 +10,8 @@
 	<link rel="shortcut icon" href="./logo.png" />
 	<meta name="theme-color" content="#000" />
 	<meta property="og:title" content="Texel" />
-	<meta property="og:description" content="Place pixels to earn money" />
+	<meta property="og:image" content="https://texel.pages.dev/banner.png"
+	<meta property="og:description" content="Place pixels to make money" />
 	<meta property="og:image" content="https://texel.pages.dev/logo256.png" />
 <style>
 	html{
@@ -692,6 +693,25 @@
 		<div style="text-align:center;"><input type="checkbox" id="dismiss-place-panel" style="vertical-align: middle;" /><label for="dismiss-place-panel"> Confirm every time</label></div>
 		<button id="place-button" class="panel-button"></button>
 	</div>
+	<div id="welcome-panel" class="panel shown">
+		<style>
+			.welcome-img{ display: flex; flex-flow: column; align-items: center; font-size: 1.25em; font-weight: bold; gap: .5rem }
+			.welcome-img img{ width: 6.4rem; height: 6.4rem; border:.2rem var(--color) solid; image-rendering: pixelated; }
+			.welcome-img:last-child img{ width: 6rem; height: 6rem; border: 0; }
+			#welcome-button{ background-color: #25e; }
+			@media screen and (max-width: 420px){ #welcome-img-container{ transform: scale(0.85); } }
+		</style>
+		<div class="panel-title"><span><img src="./logo.png" style="width:2em;height:2em;vertical-align:middle;margin-right:0.5em;transform:rotate(0.15rad);" />Welcome to Texel</span></div>
+		<p>Texel is a pixel marketplace. Place pixels and wait for them to be repurchased to earn a profit.</p>
+		<div style="display:flex;justify-content:center;gap:2rem;margin:1rem 0" id="welcome-img-container">
+			<div class="welcome-img" style="color:#e32"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAMAAADXqc3KAAAALVBMVEX////w8PDh4eH3mFmqqqr2hjz/Y8Obm5tvt0P1dB+MjIz/RLdhoTs+iP8AAABirPXRAAAAi0lEQVR42nWPWw7DIAzAAqR0a4fvf9yRviBt8QdBtiKBlFLklZGXzQNyAPRBlcOn5EKeld1PGWmwWgHzqwtaqTMZeM8esOKDPENk6cOX2DYWGzlLqr7biNfVCjHKBXQ3D8HOgNyhDXgP+D+mdJZHwKwiNpufzqDcA2HzivowEQJhNtyb6RHjN0A+A/5nEQjWaUBvdgAAAABJRU5ErkJggg" />-$0.49</div>
+			<div class="welcome-img" style="color:#5e2;transform:scale(1.1);"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAADCUlEQVR42q2UIY/lNhDH3ydJJQMDkxAjV6ostTIzM6mMqsCAApeZBhQYGlRak0pGaxZyCgqojExCDAwC8g2OVIVXe3OX7m1z6O4vyxrPjH8zb16Sxw+/fzjXV+pxUb4BaOvNdUZ7LiU+Ho9qi4ACzq+zJ6Aen3QDOnVQAbe+Zjw/P/Owj8WqtJyhGNYUW7Ea1bqopMMs70GXWqnhLx9FxVX7iHIFgsh2zYCpzHzp8DTGwmg40GcXXx88KISrDz+9q6ynp6fCJ1GwiLQRjZgFXJikeQ+CwLnrE6IC34A8tgKn86edIh53uzujnBM5rJaAjQA8saT4Evmu1X1HFwWaXO2By6JB9WeBxZqWQ5AZRgz4MdHQS45XVL4IoovHWRos4DZefp46GZ2ns6fDP3/8XNeKcwpyZ/IGZJlAKGjKOGNFsynjKwQ1HBjuJKuV1gDRHv7+7TvT8+DNW1A3ABATszrhkYfJO9EaEft6gDp4W1rl2siopeupQ7TZfdwzfwuykCWvk0Vo78rWBky2fnSKJnuljoh6eUjAXZpqa9m4PuK3IDYH0rFBEou4obLm6RWGRTbiEs4c0iHa91tyZOnq8dCDR/tbUDGcgsEhpXXrFgxCQDcvbd4bp3WfaH7//n2yIzWmG1Xj8k0R/78ZkS0eqreo2mlYwgKoHTxrR05bfV3kBGztNHbKTKB6onh5UHfzGWiJLurcKCmIjmbEjmHq+nRGYU6WkFzMsIGPhZF3MtSRU8hvnqNsmWVCQb6uoUwe4/X0a51pUDEbqPMoSvUMm6gU6KIo8T9QLvA8HIj3bsdr7KLAao6SnJ+LFcMM8qwUn/vqSR346AdzMy7Qaynec5Ukt06PCpkzzwc7yQiJOZKrL5Ax7rp/A7rE4gGXFGEvfPun8MprdiDg+UU6HOcruXXyi6CsSt3HpRsQIWNXtq2CCGQ1uxprQk+fZFE+sj4pN6DCZ3e0AU8Z+sAlpo8X7RI8XskbjwehaJtsuob9y5/f3y45HnV3y153urnLLxZ5m//49d2P32T9Cxjwbyxzb02ZAAAAAElFTkSuQmCC" />+$0.58</div>
+			<div class="welcome-img"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAWElEQVR42mMYBcMP2HX8/0+2RnSMSw2FBmNidHUUGk4YUyVIKLKAWE0UWEBYA2VBRGHcENA4QC4jIygpizSKIpecJDrQGQvTAmItJCuSKQhvwhYwjIJhBwAOWaRwZrdlwgAAAABJRU5ErkJggg" />Repeat</div>
+		</div>
+		<p style="opacity:.75;font-style:italic;text-align:center;">Currency is not real money. New accounts start with $250</p>
+		<button id="welcome-button" class="panel-button">Let's go!</button>
+	</div>
+
 	<div id="connecting"><div>Loading...</div><div id="connecting-loader"></div></div>
 	<div id="screen"></div>
 	<script type="module">
