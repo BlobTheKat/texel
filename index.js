@@ -1,5 +1,9 @@
 import { Color, colorToCss } from "./chunk.js"
-import { chunks, setArea, lastRedraw, redraw, palette, savePalette, addToTransaction, MAX_TRANSACTION_DIMENSIONS, MAX_TRANSACTION_PIXELS, MAX_ZOOM, bucketFillTransaction, commitTransaction, transactionSize, offsetTransaction, balanceChanged, balance, transactionPrice, transactionPriceChanged, MIN_DEPOSIT, WITHDRAW_FEE, checkoutDeposit, checkoutWithdraw, requestAuth, tokenChanged, token, setTokenLocal, ifloat, iint, getChunk, getTransactionPixels, clearTransaction, refreshConnection, connectionStateChanged, CONNECTION, API_ENDPOINT, clearToken, transactionOutOfScreen, transactionPixelOwnershipSummary } from "./state.js"
+import * as API from './state.js'
+import { addToTransaction, MAX_TRANSACTION_DIMENSIONS, MAX_TRANSACTION_PIXELS, MAX_ZOOM, bucketFillTransaction, commitTransaction, transactionSize, offsetTransaction, balanceChanged, balance, transactionPrice, transactionPriceChanged, MIN_DEPOSIT, WITHDRAW_FEE, checkoutDeposit, checkoutWithdraw, requestAuth, tokenChanged, token, setTokenLocal, ifloat, iint, getChunk, getTransactionPixels, clearTransaction, refreshConnection, connectionStateChanged, CONNECTION, API_ENDPOINT, clearToken, transactionOutOfScreen, transactionPixelOwnershipSummary } from "./state.js"
+
+let lastRedraw = 0, needRedraw = () => { lastRedraw = 0 }
+API.worldChanged.push(needRedraw)
 
 //function handleError(e){ console.error(e) }
 //window.addEventListener('error', e => { handleError(e.error); e.preventDefault() })
@@ -26,7 +30,7 @@ info.onchange = () => {
 	camX = (Math.floor(matches[0])||0)+(matches[0].includes('.')?0:0.5)
 	camY = (Math.floor(matches[1])||0)+(matches[1].includes('.')?0:0.5)
 	if(matches.length > 2) camZoom = camTargetZoom = Math.max(Math.min((256/matches[2]||1), MAX_ZOOM), MIN_ZOOM), easeZoom = 0
-	redraw()
+	needRedraw()
 	for(let i = 0; i < 4; i++) Sound.play(scratch, i*.5+1, 1, i*.035)
 }
 
@@ -68,6 +72,17 @@ else captureClick($('#welcome-button'), () => {
 	$('#welcome-panel').remove()
 	localStorage.welcomeDismissed = Date.now() + 86400e3
 })
+
+const defaultPalette = '000 111 222 200 210 220 120 020 021 022 012 002 102 202 201'
+const palette = []
+if(typeof localStorage.palette == 'string') for(const p of localStorage.palette.split(',')) palette.push(p&65535)
+else for(let i = 0; i < defaultPalette.length; i+=4)
+	palette.push(Color(defaultPalette[i]*.45+.05, defaultPalette[i+1]*.45+.05, defaultPalette[i+2]*.45+.05))
+
+function savePalette(){
+	if(palette.length) localStorage.setItem('palette', palette.join(','))
+	else localStorage.removeItem('palette')
+}
 
 const eyeDropper = window.EyeDropper ? new EyeDropper() : null
 if(!eyeDropper) $('#eyedropper').classList.add('disabled')
@@ -269,7 +284,7 @@ captureClick(placeButton, () => {
 })
 
 captureClick(place, e => {
-	redraw()
+	needRedraw()
 	e.preventDefault()
 	if(!drawing){
 		Sound.play(scratch)
@@ -324,13 +339,13 @@ function setLayer(l = 1-layer){
 	if(layer == (layer = l)) return
 	layer ? heatmapEl.classList.add('selected') : heatmapEl.classList.remove('selected')
 	Sound.play(scratch, 1 + layer)
-	redraw()
+	needRedraw()
 }
 function setGrid(g = !grid){
 	if(grid == (grid = g)) return
 	grid ? gridEl.classList.add('selected') : gridEl.classList.remove('selected')
 	Sound.play(scratch, 1 + grid)
-	redraw()
+	needRedraw()
 }
 
 document.addEventListener('pointerup', e => { e.target.closest('a[href]') && Sound.play(scratch, 2) })
@@ -444,8 +459,8 @@ rAF(function f(t){
 		if(keys&2) camY += moveBy
 		if(keys&4) camX -= moveBy
 		if(keys&8) camX += moveBy
-		redraw()
-	}else redraw(t)
+		needRedraw()
+	}else needRedraw(t)
 	if(document.activeElement != info){
 		const x = iint(p0x*camZoom+camX), y = iint(p0y*camZoom+camY)
 		
@@ -471,7 +486,7 @@ rAF(function f(t){
 		camY += diffY*d
 		camTargetZoom = camZoom += diffZ*d
 		easeZoom = 0
-		redraw()
+		needRedraw()
 	}else{
 		if(easeZoom){
 			const diff = (camTargetZoom-camZoom)*Math.min(1, dt*easeZoom)
@@ -479,18 +494,18 @@ rAF(function f(t){
 			camX -= diff*p0x
 			camY -= diff*p0y
 			if(Math.abs(diff/camZoom) < 1e-4) camZoom = camTargetZoom, easeZoom = 0
-			redraw()
+			needRedraw()
 		}else camZoom = camTargetZoom
 	}
 	const zoom = Math.sqrt(w*h) / camZoom
 	ctx.imageSmoothingEnabled = zoom<1.414
 	const w2 = w/(zoom+zoom), h2 = h/(zoom+zoom)
 	camX = ifloat(camX); camY = ifloat(camY)
-	setArea(camX-w2, camX+w2, camY-h2, camY+h2)
+	API.setArea(camX-w2, camX+w2, camY-h2, camY+h2)
 	const LINE_RADIUS = Math.sqrt(camZoom)/128
 	if(grid&&LINE_RADIUS*zoom>.5){
 		ctx.setTransform(zoom, 0, 0, -zoom, .5*w, .5*h)
-		for(const {0: pos, 1: chunk} of chunks){
+		for(const {0: pos, 1: chunk} of API.chunks){
 			const x = ifloat((pos<<8&0xff00)-camX), y = ifloat((pos&0xff00)-camY)
 			ctx.drawImage(chunk.ctx.canvas, chunk.idx<<8, layer<<8, 256, 256, x, y, 256, 256)
 		}
@@ -498,7 +513,7 @@ rAF(function f(t){
 		// Ensure no AA gaps which would normally be covered up by the gridlines
 		const f = 256*zoom, hw = w*.5, hh = h*.5
 		ctx.setTransform(1, 0, 0, -1, 0, h)
-		for(const {0: pos, 1: chunk} of chunks){
+		for(const {0: pos, 1: chunk} of API.chunks){
 			let x0 = ifloat((pos<<8&0xff00)-camX)*zoom+hw, y0 = ifloat((pos&0xff00)-camY)*zoom+hh
 			const w = Math.round(x0+f) - (x0 = Math.round(x0)), h = Math.round(y0+f) - (y0 = Math.round(y0))
 			ctx.drawImage(chunk.ctx.canvas, chunk.idx<<8, layer<<8, 256, 256, x0, y0, w, h)
@@ -562,7 +577,7 @@ rAF(function f(t){
 		ctx.setLineDash([lw*4, lw*4])
 		ctx.lineDashOffset = selectBoxLineOffset = (selectBoxLineOffset % (lw*8)) + dt*.75
 		ctx.strokeRect(ifloat(bounds.minX-camX), ifloat(bounds.minY-camY), ifloat(bounds.maxX-bounds.minX), ifloat(bounds.maxY-bounds.minY))
-		redraw()
+		needRedraw()
 		ctx.setLineDash([])
 	}else delete place.dataset.amount
 })
@@ -629,7 +644,7 @@ ctx.canvas.addEventListener('pointerdown', e => {
 	if(!e.isTrusted || e.pointerId === -1) return
 	if(document.activeElement !== document.body) document.activeElement.blur()
 	e.preventDefault()
-	redraw()
+	needRedraw()
 	const z = 1/Math.sqrt(innerWidth*innerHeight)
 	const x = (e.clientX-innerWidth*.5)*z, y = -(e.clientY-innerHeight*.5)*z
 	if(p0 == -1){
@@ -647,7 +662,7 @@ ctx.canvas.addEventListener('pointerdown', e => {
 const pointerup = e => {
 	if(!e.isTrusted || e.pointerId === -1) return
 	e.preventDefault()
-	redraw()
+	needRedraw()
 	if(p0 == e.pointerId){
 		p0 = p1
 		holdTimer && (clearTimeout(holdTimer), holdTimer = 0)
@@ -681,7 +696,7 @@ ctx.canvas.addEventListener('pointerleave', pointerup)
 ctx.canvas.addEventListener('pointermove', e => {
 	if(!e.isTrusted || e.pointerId === -1) return
 	e.preventDefault()
-	redraw()
+	needRedraw()
 	const z = 1/Math.sqrt(innerWidth*innerHeight)
 	if(pendown == e.pointerId){
 		const c = e.getCoalescedEvents?.() ?? []
@@ -693,7 +708,7 @@ ctx.canvas.addEventListener('pointermove', e => {
 		return
 	}
 	const x = (e.clientX-innerWidth*.5)*z, y = -(e.clientY-innerHeight*.5)*z
-	if(p0 == -1){ p0x = x; p0y = y; redraw(); return }
+	if(p0 == -1){ p0x = x; p0y = y; needRedraw(); return }
 	clickAnim = 0
 	if(p1 == -1 && p0 == e.pointerId){
 		camX -= (x - p0x) * camZoom
@@ -726,7 +741,7 @@ ctx.canvas.addEventListener('wheel', e => {
 		camX -= diff*p0x
 		camY -= diff*p0y
 	}
-	redraw()
+	needRedraw()
 }, {passive:true})
 let keys = 0
 const controls = {
@@ -756,7 +771,7 @@ controls2.Space = (down, e) => {
 
 document.addEventListener('keydown', e => { 
 	if(document.activeElement != document.body || !e.isTrusted) return
-	redraw()
+	needRedraw()
 	const fn = controls2[e.code]
 	if(fn?.(true, e)) return
 	keys |= controls[e.code]??0
@@ -776,7 +791,7 @@ function checkDpi(){
 		ctx.canvas.height = h
 	}
 }
-window.addEventListener('resize', () => { checkDpi(); redraw() })
+window.addEventListener('resize', () => { checkDpi(); needRedraw() })
 checkDpi()
 
 const actx = new AudioContext()
@@ -848,15 +863,24 @@ captureClick(balanceEl, e => {
 const onBalanceOrTransactionPriceChange = () => {
 	transactionPrice > balance && token ? place.classList.add('disabled') : place.classList.remove('disabled')
 }
-
-const onBalanceChange = bal => {
+const accountNotifBadge = $('#account-notif'), accountBalanceNotif = $('#balance-notif')
+const onBalanceChange = (bal, balIncrease, notif) => {
 	const b = Math.abs(bal / 1e4)
 	let m='', n = Math.floor(b)+''
 	while(n) m = n.slice(-3)+'\u2009'+m, n = n.slice(0,-3)
 	balanceEl.textContent = (bal < 0 ? '-$' : '$')+m.slice(0,-1)
 	balanceEl.dataset.amount2 = (b%1).toFixed(4).slice(1)
 	balanceEl.style.color = bal < 0 ? '#f00' : ''
+	accountNotifBadge.style.display = balIncrease ? '' : 'none'
+	accountBalanceNotif.style.display = balIncrease ? '' : 'none'
+	if(balIncrease) accountBalanceNotif.textContent =
+		`You have earned $${(balIncrease/10000).toFixed(4)} since last check. Click to dismiss`
+	if(notif) Sound.play(note, 4)
 }
+captureClick(accountBalanceNotif, () => {
+	API.clearBalanceNotif()
+	Sound.play(scratch, 2)
+})
 balanceChanged.push(onBalanceChange, onBalanceOrTransactionPriceChange)
 transactionPriceChanged.push(onBalanceOrTransactionPriceChange)
 tokenChanged.push(onBalanceOrTransactionPriceChange, (token, fromLS) => {
@@ -869,7 +893,6 @@ tokenChanged.push(onBalanceOrTransactionPriceChange, (token, fromLS) => {
 	}else if(!token && accountPanel.classList.contains('shown'))
 		openAccountPanel()
 })
-onBalanceChange(balance)
 
 captureClick($('#deposit'), () => {
 	Sound.play(note, 4, 1)

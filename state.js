@@ -3,17 +3,13 @@ import { Chunk, Color, colorToCss } from "./chunk.js"
 
 export const API_ENDPOINT = localStorage.api_endpoint = 'https://blobk.at:9200'
 
-export let lastRedraw = 0
-export const redraw = (t = 0) => { lastRedraw = t }
-
-let q = []
-setInterval(() => { let n = performance.now()+32; while(q.length && performance.now() < n) q.shift()?.() })
-
 export const ifloat = x => {
 	const f = Math.floor(x)
 	return (x-f) + (f<<16>>16)
 }
 export const iint = x => Math.floor(x)<<16>>16
+
+export const worldChanged = []
 export const chunks = new Map()
 let lkey = -1, lch = undefined
 export const getChunk = (x, y) => { const key = x>>8&0xff|y&0xff00; if(key == lkey) return lch; return lch=chunks.get(lkey = key) }
@@ -48,6 +44,7 @@ const loadChunk = (x, y) => {
 	}
 	loadBuf.u8(x), loadBuf.u8(y)
 	chunks.set(lkey = key, lch = new Chunk())
+	worldChanged.fire()
 	return lch
 }, unloadChunk = (x, y) => {
 	const key = x|y<<8, ch = lkey == key ? lch : (lch=chunks.get(lkey = key))
@@ -59,7 +56,7 @@ const loadChunk = (x, y) => {
 		unloadBuf.u8(x), unloadBuf.u8(y)
 		chunks.delete(key)
 		if(key == lkey) lch = undefined
-		lastRedraw = 0
+		worldChanged.fire()
 		ch.free()
 		stashChunkTransactionPrice(ch, key, x, y)
 	}
@@ -282,18 +279,6 @@ export function getTransactionPixels(cb){
 export const transactionSize = () => transaction.size
 export let transactionPrice = 0
 
-//const defaultPalette = '000 111 222 100 110 010 011 001 101 200 210 220 120 020 021 022 012 002 102 202 201 211 221 121 122 112 212'
-const defaultPalette = '000 111 222 200 210 220 120 020 021 022 012 002 102 202 201'
-export const palette = []
-if(typeof localStorage.palette == 'string') for(const p of localStorage.palette.split(',')) palette.push(p&65535)
-else for(let i = 0; i < defaultPalette.length; i+=4)
-	palette.push(Color(defaultPalette[i]*.45+.05, defaultPalette[i+1]*.45+.05, defaultPalette[i+2]*.45+.05))
-
-export function savePalette(){
-	if(palette.length) localStorage.setItem('palette', palette.join(','))
-	else localStorage.removeItem('palette')
-}
-
 let transactionCb = null
 export function commitTransaction(cb, max = -1){
 	if(!transaction.size || balance < transactionPrice || !wsOpen || transactionCb) return void cb(0, 0)
@@ -311,12 +296,12 @@ export function commitTransaction(cb, max = -1){
 	for(const v of arr) buf.u32(v)
 	ws.send(buf.toUint8Array())
 	transactionCb = cb
-	balanceChanged.fire(balance -= transactionPrice)
+	balanceChanged.fire(balance -= transactionPrice, balanceIncrease, false)
 }
 
 export const transactionPriceChanged = []
 export const balanceChanged = []
-export let balance = 0
+export let balance = 0, balanceIncrease = 0
 export let token = localStorage.texel_token ?? ''
 export const tokenChanged = []
 export let ws = null
@@ -335,18 +320,32 @@ export function setTokenLocal(t = ''){
 const S_META_PACKET = 1, S_CHUNK_DATA = 16, S_PIXEL_UPDATE = 24, S_PIXEL_UPDATE_OWNED = 25
 const S_PIXEL_TRANSACTION_RESULT = 32
 const C_SUBSCRIBE_TO = 8, C_UNSUBSCRIBE_FROM = 9, C_PIXEL_TRANSACTION = 10
-const S_HELLO_TAGS = { BALANCE: 1 }
+const C_CLEAR_BALANCE_NOTIF = 15
+const S_META_TAGS = { BALANCE: 1, BALANCE_NOTIF: 2 }
 const packetHandlers = []
 
 packetHandlers[S_META_PACKET] = buf => {
-	balance = 0
+	const prevBalanceIncrease = balanceIncrease
 	let tag = buf.v32()
 	while(tag){ switch(tag){
-		case S_HELLO_TAGS.BALANCE:
+		case S_META_TAGS.BALANCE:
 			balance = buf.u64()
 			break
+		case S_META_TAGS.BALANCE_NOTIF:
+			balanceIncrease = buf.u64()
+			break
 	} tag = buf.v32() }
-	balanceChanged.fire(balance)
+	balanceChanged.fire(balance, balanceIncrease, balanceIncrease && !prevBalanceIncrease)
+}
+
+export const clearBalanceNotif = () => {
+	if(!ws || !wsOpen) return false
+	const buf = new BufWriter()
+	buf.v32(C_CLEAR_BALANCE_NOTIF)
+	buf.u64(balanceIncrease)
+	ws.send(buf.toUint8Array())
+	balanceChanged.fire(balance, balanceIncrease = 0, false)
+	return true
 }
 
 packetHandlers[S_PIXEL_TRANSACTION_RESULT] = buf => {
@@ -370,7 +369,6 @@ packetHandlers[S_CHUNK_DATA] = buf => {
 		p += ch.priceFor(xa&255, ya&255)
 	}
 	transactionPrice += p
-	lastRedraw = 0
 }
 const pixelUpdateHandler = owned => buf => {
 	const key = buf.u8() | buf.u8()<<8
@@ -394,6 +392,7 @@ const pixelUpdateHandler = owned => buf => {
 	}
 	if(tprice0)
 		transactionPriceChanged.fire(transactionPrice += tprice0)
+	worldChanged.fire()
 }
 packetHandlers[S_PIXEL_UPDATE] = pixelUpdateHandler(0)
 packetHandlers[S_PIXEL_UPDATE_OWNED] = pixelUpdateHandler(1)
@@ -418,6 +417,7 @@ export function refreshConnection(){
 	if(ws && ws.readyState != WebSocket.CLOSED) ws.close()
 	connectionStateChanged.fire(CONNECTION.CONNECTING)
 	const ws1 = ws = new WebSocket(API_ENDPOINT + '/' + token)
+	balanceChanged.fire(balance = 0, balanceIncrease = 0, false)
 	ws1.binaryType = 'arraybuffer'
 	ws1.onmessage = ({data}) => {
 		const buf = new BufReader(data), fn = packetHandlers[buf.v32()]

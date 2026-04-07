@@ -613,6 +613,19 @@
 	}
 	.token:not(:last-child):hover:before, .token:not(:last-child):active:before{ content: unset; }
 	.token > .remove > i{ width: 16px; height: 16px; display: block; }
+	#account-notif{
+		background: #f00;
+		width: .4rem; height: .4rem;
+		border-radius: 100%;
+		transform: translate(.3rem,-.35rem);
+	}
+	#balance-notif{
+		color: #5e2;
+		font-style: italic;
+		text-align: center;
+		transform: translateY(-1rem);
+		cursor: pointer;
+	}
 </style>
 </head>
 <body>
@@ -625,7 +638,7 @@
 	</filter></svg>
 	
 	<canvas id="canvas"></canvas>
-	<div id="top-row"><button id="heatmap"></button><button id="grid" class="selected"></button><input id="info" /><div id="top-row-small-device-gap"></div><button id="account"></button><button id="help"></button></div>
+	<div id="top-row"><button id="heatmap"></button><button id="grid" class="selected"></button><input id="info" /><div id="top-row-small-device-gap"></div><button id="account"><div id="account-notif" style="display:none;"></div></button><button id="help"></button></div>
 	<div id="palette"><div>
 		<img class="palette-color" data-color="fill" id="fill" title="Bucket tool" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoAgMAAADxkFD+AAAACVBMVEUAAABHcEz///+5kPJMAAAAAnRSTlOAAE0QVXMAAADYSURBVBjTlZGxDYMwFEQ/kUxBb4qM4ClQylQoslIwgqfICBShSeVIQcI3Ze5/kJtUkVwdT4/zWUbfHEeG6I4jTY3F1Vgq6iW2wGqxjGegHIbkLjgMm+9ey27IMVw+u+E9Fn4xQ2GWdkNg0M1mmIBPm81wA7LHXDsEqMG4M2OJQeM7Mg17AbxpsD8NqdCQre5UrIPGabMOGgM02BXuK2hYDV0CDZuh1EuTFC0sKO76VHSYaDhlRZuJBrcp6q40+KCoP+mS3YNobHXJHuAOvd0C+F2yDix/vMUX4JJjaa0/mg8AAAAASUVORK5CYII=" />
 		<img class="palette-color" data-color="-1" id="eraser" title="Eraser tool" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoAgMAAADxkFD+AAAACVBMVEUAAABHcEz///+5kPJMAAAAAnRSTlOAAE0QVXMAAACNSURBVBjTlZFBDgQhCASJR5/Cf9ifeZ+LycAr127Qve1k4sGKlh1AETvrEf/c9x/qAJLj2sct7o09YqNGjIqJgJxqQC4VcqmQJdWSG5Ey1ZR1o4mTHeqkMaGOVmGmmYZ6nQ8dlU3GzcKWRQIlUw1tKVVDW50qwlY2EZuyS/ks2WtS9yqj8LR+BmJvvuILRC9zsnc+4Z4AAAAASUVORK5CYII" />
@@ -645,6 +658,7 @@
 	<div id="account-panel" class="panel">
 		<div class="panel-title">My account<button id="close-account-panel" class="close-panel"><i style="clip-path: polygon(10% 20%, 20% 10%, 50% 40%, 80% 10%, 90% 20%, 60% 50%, 90% 80%, 80% 90%, 50% 60%, 20% 90%, 10% 80%, 40% 50%);"></i></button></div>
 		<div class="panel-inset" id="balance" title="Click to copy">...</div>
+		<div id="balance-notif" style="display:none;"></div>
 		<div id="account-info">This site is in beta. Expect bugs and/or resets.</div>
 		<div style="text-align: center;"><a id="tokens">Devices & API tokens</a> &bull; <a id="signout">Sign out</a></div>
 		<div style="display: none; margin-top: 1rem"><button id="deposit" class="panel-button">Deposit</button><button id="withdraw" class="panel-button">Withdraw</button></div>
