@@ -135,6 +135,7 @@
 
 	<hr />
 	<h1 id="updates">Subscribing to updates</h1>
+	<p>All coordinates are <c>x+</c> right and <c>y+</c> up. Chunks are 256x256 pixels in size. The entire world is 256x256 chunks in size (and wraps around at <c>x=&pm;32768</c> and <c>y=&pm;32768</c>). For clarity, absolute coordinates are denoted <c>x,y</c>, chunk coordinates (divided) are denoted <c>cx,cy</c> and chunk-local coordinates are denoted <c>lx,ly</c>.</p>
 
 	<h3>Subscribe to chunk(s)</h3>
 	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">8</t>) [ <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) ]*</code>
@@ -155,11 +156,18 @@
 	<p>This packet is sent immediately after a connection is opened and includes some basic information, as listed below.</p>
 	<p>Tag = <c>1</c>. Account balance in units of $0.0001. If this tag is not present, assume the balance to be 0.</p>
 	<code><t style="color:#5e2">u64</t>(<t style="opacity:.5">account_balance</t>)</code>
+	<p>Tag = <c>2</c>. Account balance increase notification in units of $0.0001. This is used to indicate that the balance has increased by a certain amount since the notification was last cleared (this is used primarily by user-controlled clients and is a UX feature).</p>
+	<code><t style="color:#5e2">u64</t>(<t style="opacity:.5">account_notif_balance</t>)</code>
 	<p>Tag = <c>0</c>. This is used to signify the end of the tag-value section and the end of the packet.</p>
+	
+	<hr />
+	<h3>Clear notification packet</h3>
+	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">15</t>) <t style="color:#5e2">u64</t>(<t style="opacity:.5">by_amount</t>)</code>
+	<p>Used to clear account balance increase notification. See above. The balance increase notification will be decreased by <c>by_amount</c> in units of $0.0001 and clamped to be no less than 0.</p>
 
 	<hr />
 	<h3>Incoming chunk data</h3>
-	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">16</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) <t style="color:#5e2">v32</t>(<t style="opacity:.5">appended</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">color_data</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">price_data</t>)</code>
+	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">16</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) <t style="color:#5e2">v32</t>(<t style="opacity:.5">appended</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">color_data</t>) <t style="color:#e25">u8arr</t>(<t style="opacity:.5">price_data</t>) <t style="color:#5e2">v32</t>(<t style="opacity:.5">owned_ranges_count</t>) <t style="color:#5e2">v32</t>(<t style="opacity:.5">of_which_currently_owned</t>)<br>[ <t style="color:#5e2">u32</t>(<t style="opacity:.5">owned_ranges</t>) ]*<t style="opacity:.5">owned_ranges_count</t></code>
 	<p>Incoming data for the chunk at <c>(cx, cy)</c>. This packet is usually in response to a "Subscribe to chunk(s)" packet. Note that one request to subscribe to many chunks will be responded with many individual chunk data packets.</p>
 	<p><c>color_data</c> is the concatenation of a zlib raw compressed chunk data and <c>appended</c> 32-bit integers (big endian). Uncompressed, the chunk data is 131072 bytes, i.e, 256*256 16-bit integers, corresponding to the color data for this chunk. The order is left-to-right, bottom-to-top. Each 32-bit integer from the <i>append</i> section changes one pixel in the uncompressed chunk data. The high 16 bits correspond to the index and the low 16 bits to the new value.</p>
 	<p><c>price_data</c> is the concatenation of a zlib raw compressed chunk and <c>appended</c> 32-bit integers (big endian). Uncompressed, the chunk data is 262144 bytes, i.e, 256*256 32-bit integers, corresponding to price for each pixel in units of $0.0001. Each 32-bit integer from the <i>append</i> section changes one pixel in the uncompressed chunk data. The index is borrowed from the equivalent 32-bit integer in the <c>color_data</c>'s append section, and the value to be replaced is the whole 32-bit integer from this append section.</p>
@@ -170,6 +178,7 @@
 [[       zlib price data ...       ] [ append section: 4n bytes ]]
 
 </code>
+	<p>The list of <c>owned_ranges</c> represents a range of pixel indices that you either currently or previously owned. The first <c>owned_ranges_count - of_which_currently_owned</c> elements represent pixels previously owned, and the last <c>of_which_currently_owned</c> represent pixels currently owned. A pixel may appear in both sections in which case it is both currently owned and was also previously owned before the last purchase. The ranges are encoded as 32 bit integers <c>start | (end-1)&lt;&lt;16</c>, where <c>start</c> and <c>end</c> are encoded as <c>lx | ly &lt;&lt; 8</c> for local chunk coordinates. Note that ranges use indices in packed local chunk coordinates, they go left-to-right and can span multiple rows (<c>y</c> values). Additionally, the ranges might not be sorted, deduplicated, or optimized. It is up to you to detect overlapping ranges if there are any.</p>
 
 	<hr />
 	<h3>Incoming pixel data</h3>
@@ -188,8 +197,11 @@
 		<li>Max transaction dimensions: <c>256 x 256</c> (bound by encoding)</li>
 		<li>Max transaction size: <c>4096</c> pixels</li>
 		<li>Ratelimit cost: <b>1 second per 50,000 pixels</b></li>
-		<li>All chunks that a transaction modified must be subscribed to. At the current moment, they do not have to be subscribed by the same websocket that executes the transaction, however, that may change in the future.</li>
+		<li>All chunks that a transaction modified must be subscribed to. At the current moment, they do not have to be subscribed by the same websocket that executes the transaction, however, this may change in the future.</li>
 	</ul>
-	
+	<hr />
+	<h3>Transaction confirmation</h3>
+	<code>S: <t style="color:#5e2">v32</t>(<t style="color:#28e">32</t>) [<t style="color:#5e2">v32</t>(<t style="opacity:.5">placed_count</t>) <t style="color:#5e2">u64</t>(<t style="opacity:.5">final_price</t>)]?</code>
+	<p>If the main contents of the packet are not present (i.e only the packet ID is present), the transaction has failed. This is usually due to the price being above the <c>max_price</c> value specified, or for another internal server error. Otherwise, <c>placed_count</c> will match the size of your transaction and <c>final_price</c> will hold how much was deducted from your balance for this transaction. To make request-response matching simpler, packet transaction results are sent in the same order as the packet transactions themselves.</p>
 </body>
 </html>
