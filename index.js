@@ -487,15 +487,13 @@ rAF(function f(t){
 		camTargetZoom = camZoom += diffZ*d
 		easeZoom = 0
 		needRedraw()
-	}else{
-		if(easeZoom){
-			const diff = (camTargetZoom-camZoom)*Math.min(1, dt*easeZoom)
-			camZoom += diff
-			camX -= diff*p0x
-			camY -= diff*p0y
-			if(Math.abs(diff/camZoom) < 1e-4) camZoom = camTargetZoom, easeZoom = 0
-			needRedraw()
-		}else camZoom = camTargetZoom
+	}else if(easeZoom){
+		const diff = (camTargetZoom-camZoom)*Math.min(1, dt*easeZoom)
+		camZoom += diff
+		camX -= diff*p0x
+		camY -= diff*p0y
+		if(Math.abs(diff/camZoom) < 1e-4) camZoom = camTargetZoom, easeZoom = 0
+		needRedraw()
 	}
 	const zoom = Math.sqrt(w*h) / camZoom
 	ctx.imageSmoothingEnabled = zoom<1.414
@@ -733,11 +731,11 @@ ctx.canvas.addEventListener('pointermove', e => {
 ctx.canvas.addEventListener('wheel', e => {
 	if(!e.isTrusted) return
 	clickAnim = 0
-	let diff = camTargetZoom
 	camTargetZoom = Math.max(Math.min(camTargetZoom*1.003 ** e.deltaY, MAX_ZOOM), MIN_ZOOM)
-	diff = camTargetZoom-diff
-	easeZoom = Math.abs(e.deltaY) >= 80 ? 10 : 0
+	easeZoom = Math.abs(Math.log2(camTargetZoom/camZoom)) >= 1.25 ? 10 : 0
 	if(!easeZoom){
+		const diff = camTargetZoom - camZoom
+		camZoom = camTargetZoom
 		camX -= diff*p0x
 		camY -= diff*p0y
 	}
