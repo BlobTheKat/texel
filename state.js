@@ -1,7 +1,7 @@
 import { BufReader, BufWriter } from './nanobuf.min.js'
 import { Chunk, Color, colorToCss } from "./chunk.js"
 
-export const API_ENDPOINT = localStorage.api_endpoint = 'https://blobk.at:9200'
+export const API_ENDPOINT = localStorage.api_endpoint = 'https://server.rplace.live:8443'
 
 export const ifloat = x => {
 	const f = Math.floor(x)
