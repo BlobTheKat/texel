@@ -96,7 +96,7 @@ let tbasex = 0, tbasey = 0
 let tx0 = 0, tx1 = 0, ty0 = 0, ty1 = 0
 
 export const MAX_TRANSACTION_DIMENSIONS = 256
-export const MAX_TRANSACTION_PIXELS = 4096
+export const MAX_TRANSACTION_PIXELS = 1024
 
 function _cleanupTransaction(){
 	cssColCache.clear()
