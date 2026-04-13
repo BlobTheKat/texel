@@ -110,7 +110,7 @@ export class Chunk{
 				outCol[i+2] = q-512
 				if(ownStateAlpha){
 					this.ownerData[j>>2] |= ownStateBits<<((j&3)<<1)
-					outCol[i] *= ownStateAlpha; outCol[i+1] *= ownStateAlpha
+					outCol[i] *= 1-ownStateAlpha; outCol[i+1] *= 1-ownStateAlpha
 					const b = outCol[i+2]
 					outCol[i+2] = b + (255-b)*ownStateAlpha
 				}
@@ -136,7 +136,7 @@ export class Chunk{
 			this.ownerData[idx>>2] = v&~m | (vo<<1|owned)<<exp
 			const blue = vo*.15 + owned*.6
 			let r = q>255?255:q, g = q<256?0:q>511?255:q-256, b = q<512?0:q>767?255:q-512
-			r = Math.floor(r*blue); g = Math.floor(g*blue); b = Math.floor(b + (255-b)*blue)
+			r = Math.floor(r*(1-blue)); g = Math.floor(g*(1-blue)); b = Math.floor(b + (255-b)*blue)
 			this.ctx.fillStyle = '#'+hex[r>>4]+hex[r&15]+hex[g>>4]+hex[g&15]+hex[b>>4]+hex[b&15]
 			this.ctx.fillRect(x|this.idx<<8, y+256, 1, 1)
 		}
