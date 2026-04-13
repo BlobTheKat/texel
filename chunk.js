@@ -98,7 +98,7 @@ export class Chunk{
 					while(r2i < ownedRanges2.length){
 						const a = ownedRanges2[r2i]
 						if(j>=(a>>>16)+1){ r2i++; continue }
-						let m = +(j>=(a&0xffff)); ownStateAlpha += m*.6, ownStateBits |= m
+						let m = +(j>=(a&0xffff)); if(m) ownStateAlpha = .6, ownStateBits |= m
 						m = (a>>>(m<<4)&0xffff)+m; if(m < nextOwnedCheck) nextOwnedCheck = m
 						break
 					}
@@ -134,7 +134,7 @@ export class Chunk{
 			q = q < 0 ? 0 : Math.floor(896*q/(q+4))
 			const v = this.ownerData[idx>>2], exp = (idx&3)<<1, m = 3<<exp, vo = +!!(v&m)
 			this.ownerData[idx>>2] = v&~m | (vo<<1|owned)<<exp
-			const blue = vo*.25 + owned*.6
+			const blue = owned ? .6 : vo*.25
 			let r = q>255?255:q, g = q<256?0:q>511?255:q-256, b = q<512?0:q>767?255:q-512
 			r = Math.floor(r*(1-blue)); g = Math.floor(g*(1-blue)); b = Math.floor(b + (255-b)*blue)
 			this.ctx.fillStyle = '#'+hex[r>>4]+hex[r&15]+hex[g>>4]+hex[g&15]+hex[b>>4]+hex[b&15]
