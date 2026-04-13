@@ -333,7 +333,7 @@ function submitTransaction(max){
 	if(lastFillUndo) lastFillUndo = null, lastFillToast.remove(), lastFillToast = null
 }
 
-let layer = 0, grid = true
+let layer = 0, grid = false
 const heatmapEl = $('#heatmap'), gridEl = $('#grid')
 function setLayer(l = 1-layer){
 	if(layer == (layer = l)) return
