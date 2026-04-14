@@ -47,6 +47,7 @@
 			display: block;
 			margin-block-end: 1em;
 			tab-size: 4;
+			word-wrap: break-word;
 		}
 		.note{
 			border-left: var(--col) .25em solid;
@@ -117,7 +118,7 @@
 
 	<hr />
 	<h3>Ratelimiting</h3>
-	<p>Ratelimiting is calculated over a 12 hour window and shared between all API endpoints. The ratelimit applied for invoking a given endpoint may be higher if the endpoint fails for a reason that could have easily been avoided (e.g malformed or repeated request).</p>
+	<p>Ratelimiting is calculated over a 6 hour window and shared between all API endpoints. The ratelimit applied for invoking a given endpoint may be higher if the endpoint fails for a reason that could have easily been avoided (e.g malformed or repeated request).</p>
 	<p>The "Ratelimit cost" for each endpoint describes the time cost of calling the endpoint if it succeeds. For example, an endpoint with a Ratelimit cost of 30 seconds, if called every 30 seconds, will use up 100% of the sender's allocated ratelimit. In this example, if the endpoint fails due to ratelimiting, you should wait at least 30 seconds without making any other requests before trying again.</p>
 	<hr />
 	<h1 id="gateway">Account management</h1>
@@ -198,7 +199,7 @@
 	<ul>
 		<li>Max transaction dimensions: <c>256 x 256</c> (bound by encoding)</li>
 		<li>Max transaction size: <c>1024</c> pixels</li>
-		<li>Ratelimit cost: <b>1 second per 50,000 pixels</b></li>
+		<li>Ratelimit cost: <b>1 second per 20,000 pixels</b></li>
 		<li>All chunks that a transaction modified must be subscribed to. At the current moment, they do not have to be subscribed by the same websocket that executes the transaction, however, this may change in the future.</li>
 	</ul>
 	<hr />
