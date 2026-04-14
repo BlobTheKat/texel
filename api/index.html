@@ -137,6 +137,7 @@
 	<hr />
 	<h1 id="updates">Subscribing to updates</h1>
 	<p>All coordinates are <c>x+</c> right and <c>y+</c> up. Chunks are 256x256 pixels in size. The entire world is 256x256 chunks in size (and wraps around at <c>x=&pm;32768</c> and <c>y=&pm;32768</c>). For clarity, absolute coordinates are denoted <c>x,y</c>, chunk coordinates (divided) are denoted <c>cx,cy</c> and chunk-local coordinates are denoted <c>lx,ly</c>.</p>
+	<p>Colors are represented as 16 bit integers in the RGB5 format, that is, <c>r | g&lt;&lt;5 | b&lt;&lt;10</c> for <c>0 &le; r,g,b &lt; 32</c>. The highest bit is currently ignored, thus, making a total of 32768 unique colors.</p>
 
 	<h3>Subscribe to chunk(s)</h3>
 	<code>C: <t style="color:#5e2">v32</t>(<t style="color:#28e">8</t>) [ <t style="color:#5e2">u8</t>(<t style="opacity:.5">cx</t>) <t style="color:#5e2">u8</t>(<t style="opacity:.5">cy</t>) ]*</code>
